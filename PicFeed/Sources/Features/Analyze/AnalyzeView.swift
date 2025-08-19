@@ -27,17 +27,17 @@ struct AnalyzeView: View {
                     
                     VStack(spacing: 10) {
                         Button {
-                            
+                            isPresentedPhotoPicker = true
                         } label: {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 15)
                                     .foregroundStyle(.gray.opacity(0.5))
                                 Text("사진 다시 가져오기")
                                     .foregroundStyle(.white)
-                                    .padding(.vertical, 12)
                             }
-                            .fixedSize(horizontal: false, vertical: true)
                         }
+                        .frame(height: 44)
+                        .disabled(viewModel.isLoading)
                         
                         Button {
                             Task {
@@ -48,12 +48,18 @@ struct AnalyzeView: View {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 15)
                                     .foregroundStyle(.blue)
-                                Text("분석하기")
-                                    .foregroundStyle(.white)
-                                    .padding(.vertical, 12)
+                                
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .padding(.vertical, 12)
+                                } else {
+                                    Text("분석하기")
+                                        .foregroundStyle(.white)
+                                }
                             }
+                            .frame(height: 44)
                         }
-                        .fixedSize(horizontal: false, vertical: true)
+                        .disabled(viewModel.isLoading)
                     }
                     .padding(.horizontal, 20)
                 }
