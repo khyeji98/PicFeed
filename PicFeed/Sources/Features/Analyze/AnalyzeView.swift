@@ -11,6 +11,12 @@ struct AnalyzeView: View {
     @State private var isPresentedPhotoPicker: Bool = false
     @State private var selectedPhoto: UIImage? = nil
     
+    private let viewModel: AnalyzeViewModel
+    
+    init(viewModel: AnalyzeViewModel) {
+        self.viewModel = viewModel
+    }
+    
     var body: some View {
         ZStack {
             if let selectedPhoto {
@@ -34,7 +40,10 @@ struct AnalyzeView: View {
                         }
                         
                         Button {
-                            
+                            Task {
+                                guard let imageData = selectedPhoto.jpegData(compressionQuality: 0.8) else { return }
+                                await viewModel.analyze(imageData: imageData)
+                            }
                         } label: {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 15)
@@ -84,5 +93,5 @@ struct AnalyzeView: View {
 }
 
 #Preview {
-    AnalyzeView()
+    AnalyzeView(viewModel: AnalyzeViewModel(networkClient: URLSessionClient()))
 }

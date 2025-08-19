@@ -1,5 +1,10 @@
 import ProjectDescription
 
+let settings: Settings = .settings(configurations: [
+    .debug(name: "Debug", xcconfig: .relativeToRoot("PicFeed/Config/Secret.xcconfig")),
+    .release(name: "Release", xcconfig: .relativeToRoot("PicFeed/Config/Secret.xcconfig"))
+])
+
 let project = Project(
     name: "PicFeed",
     targets: [
@@ -14,11 +19,14 @@ let project = Project(
                         "UIColorName": "",
                         "UIImageName": "",
                     ],
+                    "SERVER_HOST": .string("$(SERVER_HOST)"),
+                    "API_KEY" : .string("$(API_KEY)")
                 ]
             ),
             sources: ["PicFeed/Sources/**"],
             resources: ["PicFeed/Resources/**"],
-            dependencies: []
+            dependencies: [],
+            settings: settings
         ),
         .target(
             name: "PicFeedTests",

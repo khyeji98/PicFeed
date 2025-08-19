@@ -9,7 +9,7 @@ import Foundation
 
 enum Parameter {
     case json(Encodable)
-    case multipart(boundary: String, [Data])
+    case multipart(boundary: String, datas: [Data], others: Encodable? = nil)
 }
 
 protocol EndpointAPI {
@@ -19,7 +19,6 @@ protocol EndpointAPI {
     var method: HTTPMethod { get }
     var headers: [String: String] { get }
     var parameter: Parameter { get }
-    var responseBody: Response { get }
 }
 
 extension EndpointAPI {
@@ -34,25 +33,34 @@ extension EndpointAPI {
         switch parameter {
         case .json(let encodable):
             return try? DataMapper.map(from: encodable)
-        case .multipart(let boundary, let datas):
+        case .multipart(let boundary, let datas, let others):
             let mutableData = NSMutableData()
+            let lineBreak = "\r\n"
+            
             for data in datas {
-                mutableData.appendString("--\(boundary)\r\n")
-                mutableData.appendString("Content-Disposition: form-data; name=\"file\"; filename=\"\(UUID().uuidString).jpeg\"\r\n")
-                mutableData.appendString("Content-Type: image/jpeg\r\n\r\n")
+                mutableData.appendString("--\(boundary)\(lineBreak)")
+                mutableData.appendString("Content-Disposition: form-data; name=\"file\"; filename=\"\(UUID().uuidString).jpg\"\(lineBreak)")
+                mutableData.appendString("Content-Type: image/jpeg\(lineBreak)\(lineBreak)")
                 mutableData.append(data)
-                mutableData.appendString("\r\n")
+                mutableData.appendString(lineBreak)
             }
-            mutableData.appendString("--\(boundary)--")
+            
+            if let otherDict = others?.toDictionary() {
+                for (key, value) in otherDict {
+                    mutableData.appendString("--\(boundary)\(lineBreak)")
+                    mutableData.appendString("Content-Disposition: form-data; name=\"\(key)\"\(lineBreak)\(lineBreak)")
+                    mutableData.appendString("\(value)\(lineBreak)")
+                }
+            }
+            
+            mutableData.appendString("--\(boundary)--\(lineBreak)")
             return mutableData as Data
         }
     }
-    
-    var response: Response.Type { Response.self }
 }
 
 private extension Bundle {
-    static let domain: String = main.infoDictionary?["SERVER_HOST"] as? String ?? ""
+    static let domain: String = main.object(forInfoDictionaryKey: "SERVER_HOST") as? String ?? ""
 }
 
 private extension NSMutableData {
@@ -62,3 +70,12 @@ private extension NSMutableData {
         }
     }
 }
+
+private extension Encodable {
+    func toDictionary() -> [String: Any]? {
+        guard let data = try? JSONEncoder().encode(self),
+              let dictionary = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any] else { return nil }
+        return dictionary
+    }
+}
+
