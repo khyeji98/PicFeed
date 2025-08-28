@@ -11,6 +11,8 @@ struct AnalyzeView: View {
     @State private var isPresentedPhotoPicker: Bool = false
     @State private var selectedPhoto: UIImage? = nil
     
+    @State private var isPresentedResultView: Bool = false
+    
     private let viewModel: AnalyzeViewModel
     
     init(viewModel: AnalyzeViewModel) {
@@ -18,6 +20,8 @@ struct AnalyzeView: View {
     }
     
     var body: some View {
+        @Bindable var viewModel = viewModel
+        
         ZStack {
             if let selectedPhoto {
                 VStack(spacing: 20) {
@@ -43,6 +47,9 @@ struct AnalyzeView: View {
                             Task {
                                 guard let imageData = selectedPhoto.jpegData(compressionQuality: 0.8) else { return }
                                 await viewModel.analyze(imageData: imageData)
+                                if viewModel.analyzeResult != nil {
+                                    isPresentedResultView = true
+                                }
                             }
                         } label: {
                             ZStack {
@@ -62,6 +69,9 @@ struct AnalyzeView: View {
                         .disabled(viewModel.isLoading)
                     }
                     .padding(.horizontal, 20)
+                }
+                .fullScreenCover(item: $viewModel.analyzeResult) { item in
+                    ResultView(uiImage: selectedPhoto, result: item)
                 }
             } else {
                 Menu {

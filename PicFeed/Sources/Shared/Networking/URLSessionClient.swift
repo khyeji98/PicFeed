@@ -26,6 +26,14 @@ final class URLSessionClient: NetworkClient {
             }
             urlRequest.httpBody = endpoint.httpBody
             
+            #if DEBUG
+            if let body = endpoint.httpBody {
+                print("Body size: \(body.count) bytes (\(Double(body.count) / 1024.0 / 1024.0) MB)")
+            } else {
+                print("No httpBody")
+            }
+            #endif
+            
             // 2. Reqeust Networking
             let (data, response) = try await session.data(for: urlRequest)
             guard let response = response as? HTTPURLResponse else { throw NetworkError.invalidURLResponse }

@@ -33,26 +33,6 @@ struct AnalyzeEndpoint: EndpointAPI {
     }
 }
 
-struct BaseResponse<T: Decodable>: Decodable {
-    let code: Int
-    let data: T
-}
-
-struct AnalyzeResponse: Decodable {
-    let composition: Detail
-    let exposure: Detail
-    let color: Detail
-    let subjectClarity: Detail
-    let mood: Detail
-}
-
-extension AnalyzeResponse {
-    struct Detail: Decodable {
-        let score: Double
-        let reason: String
-    }
-}
-
 private extension Bundle {
     static let apiKey: String = main.object(forInfoDictionaryKey: "API_KEY") as? String ?? ""
 }
